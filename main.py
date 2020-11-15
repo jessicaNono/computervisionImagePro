@@ -3,8 +3,7 @@
 from PIL import Image
 import numpy as np
 import cv2
-from matplotlib import pyplot as plt
-
+import torch
 
 def convolve(image,kernel, bias):
    m, n = kernel.shape
@@ -50,7 +49,7 @@ def sobel(imag):
 #Ideally, the final image should have thin edges. Thus, we must perform non-maximum suppression to thin out the edges.
 
 #The principle is simple: the algorithm goes through all the points on the gradient intensity matrix and finds the pixels with the maximum value in the edge directions.
-# Press the green button in the gutter to run the script.
+
 def non_max_suppression(img, D):
     M, N = img.shape
     Z = np.zeros((M, N), dtype=np.int32)
@@ -119,7 +118,8 @@ def threshold(img, lowThresholdRatio=0.05, highThresholdRatio=0.09):
 
 #Edge Tracking by Hysteresis
 
-#Based on the threshold results, the hysteresis consists of transforming weak pixels into strong ones, if and only if at least one of the pixels around the
+#Based on the threshold results,
+# the hysteresis consists of transforming weak pixels into strong ones, if and only if at least one of the pixels around the
 def hysteresis(img, weak, strong=0):
     M, N = img.shape
     for i in range(1, M-1):
@@ -140,28 +140,49 @@ def hysteresis(img, weak, strong=0):
     im.show()
     return img
 
+def contourf(image):
+    copy = cv2.copyMakeBorder(image, 0, 0, 0, 0, cv2.BORDER_REPLICATE)
+    im = Image.fromarray(copy)
+    im.convert('RGB').save('data/copy.jpg')
+    im = cv2.imread('data/copy.jpg')
+    imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(imgray, 127, 255, 0)
+    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    _red = (0, 0, 255);  # Red for external contours
+    _green = (0, 255, 0);  # Gren internal contours
+    levels = 2  # 1 contours drawn, 2 internal contours as well, 3 ...
+    cv2.drawContours(copy, contours, 2, _green, 2)
+
+    im = Image.fromarray(copy)
+    im.convert('RGB').save('data/contours.jpg')
+    im.show()
+
+    return copy
 if __name__ == '__main__':
-   im1 =  readImage('data/test3.jpg')
+   im =   readImage('data/test1.jpg')
+
    im2 = readImage('data/mario.png')
-   gray = rgbTogray(im1)
+   gray = rgbTogray(im)
    gradientMat, thetaMat = sobel(gray)
    nonmaxsupr = non_max_suppression(gradientMat, thetaMat)
    res, weak, strong = threshold(nonmaxsupr)
    img_final = hysteresis(res, weak,0)
-   mask = np.zeros(gray.shape[:2], np.uint8)
-   mask[100:300, 100:400] = 255
-   masked_img = cv2.bitwise_and(im1, im1, mask=mask)
+
+  # mask = np.zeros(gray.shape[:2], np.uint8)
+   #mask[100:300, 100:400] = 255
+   #masked_img = cv2.bitwise_and(im, im, mask=mask)
 
    # Calculate histogram with mask and without mask
    # Check third argument for mask
-   hist_full = cv2.calcHist([im1], [0], None, [256], [0, 256])
-   hist_mask = cv2.calcHist([im1], [0], mask, [256], [0, 256])
+   #hist_full = cv2.calcHist([im], [0], None, [256], [0, 256])
+  # hist_mask = cv2.calcHist([im], [0], mask, [256], [0, 256])
 
-   plt.subplot(221), plt.imshow(im1 , 'gray')
-   plt.subplot(222), plt.imshow(mask, 'gray')
-   plt.subplot(223), plt.imshow(masked_img, 'gray')
-   plt.subplot(224), plt.plot(hist_full), plt.plot(hist_mask)
-   plt.xlim([0, 256])
+   #plt.subplot(221), plt.imshow(im , 'gray')
+   #plt.subplot(222), plt.imshow(mask, 'gray')
+   #plt.subplot(223), plt.imshow(masked_img, 'gray')
+   #plt.subplot(224), plt.plot(hist_full), plt.plot(hist_mask)
+   #plt.xlim([0, 256])
 
-   plt.show()
+  # plt.show()
 
