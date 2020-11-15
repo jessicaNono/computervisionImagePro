@@ -7,8 +7,6 @@ from matplotlib import pyplot as plt
 
 
 def convolve(image,kernel, bias):
-   #sum = scipy.ndimage.convolve(n, kernel)
-
    m, n = kernel.shape
    if (m == n):
        y, x = image.shape
@@ -18,8 +16,8 @@ def convolve(image,kernel, bias):
        for i in range(y):
            for j in range(x):
                new_image[i][j] = np.sum(image[i:i+m, j:j+m]* kernel) + bias
-
    return new_image
+
 def readImage(path):
     im = np.array((Image.open(path)).convert('RGB'))
     return im
@@ -31,6 +29,7 @@ def rgbTogray(imag):
     im.convert('RGB').save('data/gray.jpg')
     im.show()
     return g
+
 def sobel(imag):
     #matrix product @  wiki formula
     filter1  =  np.array([[-1, 0, 1], [-2, 0, 2], [-1,-0, 1]])
